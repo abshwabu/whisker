@@ -7,6 +7,8 @@ import 'package:whisker/models/cat_state.dart';
 import 'package:whisker/models/task_type.dart';
 import 'package:whisker/providers/cat_provider.dart';
 import 'package:whisker/widgets/cat_painter.dart';
+import 'package:whisker/screens/settings_screen.dart';
+import 'package:whisker/services/notification_service.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -55,6 +57,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
       vsync: this,
       duration: const Duration(seconds: 3),
     )..repeat(reverse: true);
+
+    // Friendly prompt for permission on first launch
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService().checkFirstLaunchPermission(context);
+    });
   }
 
   @override
@@ -303,45 +310,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
     });
   }
 
-  void _showRenameDialog(BuildContext context, String currentName) {
-    final controller = TextEditingController(text: currentName);
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFFFFF9F8),
-        title: const Text(
-          'Rename Your Cat',
-          style: TextStyle(color: Color(0xFF4A3E3D), fontWeight: FontWeight.bold),
-        ),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Enter new name...',
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFFFFB5A7)),
-            ),
-          ),
-          style: const TextStyle(color: Color(0xFF4A3E3D)),
-          maxLength: 15,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                ref.read(catProvider.notifier).updateName(controller.text.trim());
-              }
-              Navigator.of(ctx).pop();
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _showAccessoryDrawer(BuildContext context) {
     showModalBottomSheet(
@@ -589,9 +557,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.edit_note, color: Color(0xFF4A3E3D), size: 28),
-                                    onPressed: () => _showRenameDialog(context, catState.name),
-                                    tooltip: 'Rename Cat',
+                                    icon: const Icon(Icons.settings, color: Color(0xFF4A3E3D), size: 28),
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => const SettingsScreen(),
+                                        ),
+                                      );
+                                    },
+                                    tooltip: 'Settings',
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.checkroom, color: Color(0xFF4A3E3D), size: 28),

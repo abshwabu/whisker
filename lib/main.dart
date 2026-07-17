@@ -7,10 +7,14 @@ import 'package:whisker/models/hidden_message.dart';
 import 'package:whisker/models/diary_entry.dart';
 import 'package:whisker/screens/home_screen.dart';
 import 'package:whisker/theme/app_theme.dart';
+import 'package:whisker/services/notification_service.dart';
 
 void main() async {
   // Ensure widget binding is initialized before calling native platforms/Hive init
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize notifications
+  await NotificationService().init();
 
   // Initialize Hive for local storage
   await Hive.initFlutter();
