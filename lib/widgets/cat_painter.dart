@@ -5,12 +5,14 @@ class CatWidget extends StatelessWidget {
   final String mood;
   final int bondLevel;
   final String? equippedAccessory;
+  final double animationValue;
 
   const CatWidget({
     super.key,
     required this.mood,
     required this.bondLevel,
     this.equippedAccessory,
+    this.animationValue = 0.0,
   });
 
   @override
@@ -35,6 +37,7 @@ class CatWidget extends StatelessWidget {
                   mood: mood,
                   bondLevel: bondLevel,
                   equippedAccessory: equippedAccessory,
+                  animationValue: animationValue,
                 ),
               ),
             ),
@@ -68,11 +71,13 @@ class CatPainter extends CustomPainter {
   final String mood;
   final int bondLevel;
   final String? equippedAccessory;
+  final double animationValue;
 
   CatPainter({
     required this.mood,
     required this.bondLevel,
     required this.equippedAccessory,
+    this.animationValue = 0.0,
   });
 
   @override
@@ -122,17 +127,51 @@ class CatPainter extends CustomPainter {
     if (equippedAccessory != null) {
       _drawAccessory(canvas, cx, cy, linePaint);
     }
+
+    // 7. Draw Ambient Sparkles at High Bond Levels
+    if (bondLevel >= 50) {
+      _drawAmbientSparkles(canvas, cx, cy);
+    }
+  }
+
+  void _drawAmbientSparkles(Canvas canvas, double cx, double cy) {
+    final Paint sparklePaint = Paint()
+      ..color = const Color(0xFFFFD166).withValues(alpha: 0.8)
+      ..style = PaintingStyle.fill;
+
+    // Pulsating size using animationValue
+    final double pulse1 = 4.0 + sin(animationValue * pi * 2) * 2.0;
+    final double pulse2 = 4.0 + cos(animationValue * pi * 2) * 2.0;
+
+    // Position 1: Top Left
+    _drawStar(canvas, cx - 65, cy - 65, pulse1, sparklePaint);
+
+    // Position 2: Top Right
+    _drawStar(canvas, cx + 65, cy - 65, pulse2, sparklePaint);
+
+    // If bond level is even higher, add more sparkles
+    if (bondLevel >= 75) {
+      final Paint pinkSparkle = Paint()
+        ..color = const Color(0xFFFFB5A7).withValues(alpha: 0.7)
+        ..style = PaintingStyle.fill;
+      _drawStar(canvas, cx - 75, cy + 30, pulse2, pinkSparkle);
+      _drawStar(canvas, cx + 75, cy + 30, pulse1, pinkSparkle);
+    }
   }
 
   void _drawTail(Canvas canvas, double cx, double cy, Paint linePaint, Paint bodyPaint) {
     final path = Path();
     path.moveTo(cx + 40, cy + 50);
-    // Draw curved tail
+    
+    // Smooth wag/flick using animationValue
+    final tailOffset = sin(animationValue * pi * 4) * 8.0;
+
+    // Draw curved tail with animated flick
     if (mood == 'playful') {
-      path.quadraticBezierTo(cx + 90, cy + 10, cx + 80, cy - 40);
+      path.quadraticBezierTo(cx + 90 + tailOffset, cy + 10, cx + 80 + tailOffset, cy - 40);
       path.quadraticBezierTo(cx + 65, cy - 50, cx + 70, cy - 20);
     } else {
-      path.quadraticBezierTo(cx + 80, cy + 40, cx + 75, cy + 10);
+      path.quadraticBezierTo(cx + 80 + tailOffset, cy + 40, cx + 75 + tailOffset / 2, cy + 10);
       path.quadraticBezierTo(cx + 65, cy, cx + 60, cy + 20);
     }
     path.quadraticBezierTo(cx + 50, cy + 45, cx + 40, cy + 50);
@@ -261,8 +300,26 @@ class CatPainter extends CustomPainter {
       canvas.drawCircle(Offset(cx + 32, cy - 1), 6, blushPaint);
     }
 
-    // Eyes depending on Mood
-    if (mood == 'sleepy') {
+    // Eyes depending on Mood (Blinks periodically on any mood except sleepy/affectionate)
+    final isBlinking = animationValue > 0.48 && animationValue < 0.52;
+
+    if (isBlinking && mood != 'sleepy' && mood != 'affectionate') {
+      // Closed arcs downwards (blink)
+      canvas.drawArc(
+        Rect.fromCenter(center: Offset(cx - 22, cy - 18), width: 14, height: 10),
+        0,
+        pi,
+        false,
+        linePaint,
+      );
+      canvas.drawArc(
+        Rect.fromCenter(center: Offset(cx + 22, cy - 18), width: 14, height: 10),
+        0,
+        pi,
+        false,
+        linePaint,
+      );
+    } else if (mood == 'sleepy') {
       // Closed arcs downwards
       canvas.drawArc(
         Rect.fromCenter(center: Offset(cx - 22, cy - 18), width: 14, height: 10),
@@ -463,6 +520,7 @@ class CatPainter extends CustomPainter {
   bool shouldRepaint(covariant CatPainter oldDelegate) {
     return oldDelegate.mood != mood ||
         oldDelegate.bondLevel != bondLevel ||
-        oldDelegate.equippedAccessory != equippedAccessory;
+        oldDelegate.equippedAccessory != equippedAccessory ||
+        oldDelegate.animationValue != animationValue;
   }
 }

@@ -5,7 +5,7 @@ import 'package:whisker/models/cat_state.dart';
 import 'package:whisker/models/daily_task_log.dart';
 import 'package:whisker/models/hidden_message.dart';
 import 'package:whisker/models/diary_entry.dart';
-import 'package:whisker/screens/home_screen.dart';
+import 'package:whisker/screens/splash_screen.dart';
 import 'package:whisker/theme/app_theme.dart';
 import 'package:whisker/services/notification_service.dart';
 
@@ -63,7 +63,7 @@ class WhiskerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Whisker',
       theme: AppTheme.lightTheme,
-      home: const HomeScreen(),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

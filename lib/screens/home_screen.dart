@@ -501,11 +501,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                                   IconButton(
                                     icon: const Icon(Icons.settings, color: Color(0xFF4A3E3D), size: 28),
                                     onPressed: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => const SettingsScreen(),
-                                        ),
-                                      );
+                                      Navigator.of(context).push(_createRoute(const SettingsScreen()));
                                     },
                                     tooltip: 'Settings',
                                   ),
@@ -515,11 +511,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                                       IconButton(
                                         icon: const Icon(Icons.auto_stories, color: Color(0xFF4A3E3D), size: 28),
                                         onPressed: () {
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (context) => const DiaryScreen(),
-                                            ),
-                                          );
+                                          Navigator.of(context).push(_createRoute(const DiaryScreen()));
                                         },
                                         tooltip: 'Diary',
                                       ),
@@ -527,11 +519,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                                       IconButton(
                                         icon: const Icon(Icons.checkroom, color: Color(0xFF4A3E3D), size: 28),
                                         onPressed: () {
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (context) => const ClosetScreen(),
-                                            ),
-                                          );
+                                          Navigator.of(context).push(_createRoute(const ClosetScreen()));
                                         },
                                         tooltip: 'Closet',
                                       ),
@@ -586,21 +574,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                                         final floatOffset = sin(_floatController.value * pi * 2) * 8.0;
                                         return Transform.translate(
                                           offset: Offset(0, floatOffset),
-                                          child: child,
+                                          child: AnimatedContainer(
+                                            duration: const Duration(milliseconds: 200),
+                                            curve: Curves.easeInOut,
+                                            transform: Matrix4.translationValues(_catOffsetX, _catOffsetY, 0.0)
+                                              ..scaleByVector3(v.Vector3(_catScaleX, _catScaleY, 1.0))
+                                              ..rotateZ(_catRotation),
+                                            child: CatWidget(
+                                              mood: catState.moodToday,
+                                              bondLevel: catState.bondLevel,
+                                              equippedAccessory: catState.equippedAccessory,
+                                              animationValue: _floatController.value,
+                                            ),
+                                          ),
                                         );
                                       },
-                                      child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 200),
-                                        curve: Curves.easeInOut,
-                                        transform: Matrix4.translationValues(_catOffsetX, _catOffsetY, 0.0)
-                                          ..scaleByVector3(v.Vector3(_catScaleX, _catScaleY, 1.0))
-                                          ..rotateZ(_catRotation),
-                                        child: CatWidget(
-                                          mood: catState.moodToday,
-                                          bondLevel: catState.bondLevel,
-                                          equippedAccessory: catState.equippedAccessory,
-                                        ),
-                                      ),
                                     ),
 
                                     // Feeding Bowl Slide-In
@@ -915,6 +903,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
           ),
         ),
       ],
+    );
+  }
+
+  Route _createRoute(Widget page) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0.05, 0.0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          ),
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 300),
     );
   }
 }
