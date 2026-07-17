@@ -4,12 +4,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vector_math/vector_math_64.dart' as v;
 import 'package:whisker/models/cat_state.dart';
+import 'package:hive/hive.dart';
+import 'package:whisker/models/diary_entry.dart';
+import 'package:whisker/models/hidden_message.dart';
 import 'package:whisker/models/task_type.dart';
 import 'package:whisker/providers/cat_provider.dart';
 import 'package:whisker/widgets/cat_painter.dart';
 import 'package:whisker/screens/settings_screen.dart';
 import 'package:whisker/screens/closet_screen.dart';
+import 'package:whisker/screens/message_reveal_screen.dart';
 import 'package:whisker/services/notification_service.dart';
+import 'package:whisker/services/message_seed.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -276,6 +281,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
 
   Future<void> _executeTaskCompletion(CatNotifier notifier, CatState catState, TaskType type) async {
     final oldUnlockedCount = catState.accessoriesUnlocked.length;
+    final oldBond = catState.bondLevel;
 
     // Trigger haptic feedback on completion
     HapticFeedback.lightImpact();
@@ -284,6 +290,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
 
     final newCatState = ref.read(catProvider);
     final newUnlockedCount = newCatState.accessoriesUnlocked.length;
+    final newBond = newCatState.bondLevel;
+
+    // Check if we crossed a milestone: 10, 25, 50, 75, 100
+    final milestones = [10, 25, 50, 75, 100];
+    for (final milestone in milestones) {
+      if (oldBond < milestone && newBond >= milestone) {
+        // Find matching message in seed list
+        final msgSeed = hiddenMessagesSeed.firstWhere(
+          (m) => m.bondLevelRequired == milestone,
+          orElse: () => HiddenMessage(bondLevelRequired: milestone, text: ''),
+        );
+        if (msgSeed.text.isNotEmpty) {
+          // 1. Create a DiaryEntry and save to diaryBox
+          final diaryEntry = DiaryEntry(
+            date: DateTime.now(),
+            text: msgSeed.text,
+            imagePath: msgSeed.imagePath,
+            authorIsHer: false, // pre-seeded message
+          );
+          final box = Hive.box<DiaryEntry>('diaryBox');
+          await box.add(diaryEntry);
+
+          // 2. Navigate to MessageRevealScreen
+          if (mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => MessageRevealScreen(
+                  milestone: milestone,
+                  text: msgSeed.text,
+                  imagePath: msgSeed.imagePath,
+                ),
+              ),
+            );
+          }
+        }
+      }
+    }
 
     if (newUnlockedCount > oldUnlockedCount) {
       final newlyUnlocked = newCatState.accessoriesUnlocked.firstWhere(
