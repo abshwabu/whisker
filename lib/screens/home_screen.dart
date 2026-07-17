@@ -8,6 +8,7 @@ import 'package:whisker/models/task_type.dart';
 import 'package:whisker/providers/cat_provider.dart';
 import 'package:whisker/widgets/cat_painter.dart';
 import 'package:whisker/screens/settings_screen.dart';
+import 'package:whisker/screens/closet_screen.dart';
 import 'package:whisker/services/notification_service.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -311,109 +312,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
   }
 
 
-  void _showAccessoryDrawer(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFFFFF9F8),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) {
-        return Consumer(
-          builder: (context, ref, child) {
-            final cat = ref.watch(catProvider);
-            final notifier = ref.read(catProvider.notifier);
-
-            final allAccessories = [
-              {'id': 'Red Collar', 'unlock': 10, 'icon': Icons.circle_notifications},
-              {'id': 'Yellow Bell', 'unlock': 25, 'icon': Icons.notifications_active},
-              {'id': 'Pink Bow', 'unlock': 50, 'icon': Icons.bookmark},
-              {'id': 'Wizard Hat', 'unlock': 75, 'icon': Icons.brightness_3},
-              {'id': 'Crown', 'unlock': 100, 'icon': Icons.workspace_premium},
-            ];
-
-            return SizedBox(
-              height: 400,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    Container(
-                      width: 50,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Accessory Wardrobe',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF4A3E3D),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: allAccessories.length,
-                        itemBuilder: (context, index) {
-                          final accessory = allAccessories[index];
-                          final id = accessory['id'] as String;
-                          final unlockLevel = accessory['unlock'] as int;
-                          final icon = accessory['icon'] as IconData;
-
-                          final isUnlocked = cat.accessoriesUnlocked.contains(id) || cat.bondLevel >= unlockLevel;
-                          final isEquipped = cat.equippedAccessory == id;
-
-                          return ListTile(
-                            leading: Icon(
-                              icon,
-                              color: isUnlocked ? const Color(0xFFFFB5A7) : Colors.grey,
-                              size: 28,
-                            ),
-                            title: Text(
-                              id,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: isUnlocked ? const Color(0xFF4A3E3D) : Colors.grey[600],
-                              ),
-                            ),
-                            subtitle: isUnlocked
-                                ? const Text('Unlocked!', style: TextStyle(color: Colors.green, fontSize: 12))
-                                : Text('Unlocks at Bond Level $unlockLevel', style: const TextStyle(fontSize: 12)),
-                            trailing: isUnlocked
-                                ? ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: isEquipped ? const Color(0xFFFCD5CE) : const Color(0xFFFFB5A7),
-                                    ),
-                                    onPressed: () {
-                                      if (isEquipped) {
-                                        notifier.equipAccessory(null);
-                                      } else {
-                                        notifier.equipAccessory(id);
-                                      }
-                                    },
-                                    child: Text(isEquipped ? 'Unequip' : 'Equip'),
-                                  )
-                                : const Icon(Icons.lock, color: Colors.grey),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   Widget _buildUnlockToastCard() {
     IconData icon = Icons.workspace_premium;
     switch (_unlockedAccessory) {
@@ -569,8 +467,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                                   ),
                                   IconButton(
                                     icon: const Icon(Icons.checkroom, color: Color(0xFF4A3E3D), size: 28),
-                                    onPressed: () => _showAccessoryDrawer(context),
-                                    tooltip: 'Accessories Wardrobe',
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => const ClosetScreen(),
+                                        ),
+                                      );
+                                    },
+                                    tooltip: 'Closet',
                                   ),
                                 ],
                               ),
