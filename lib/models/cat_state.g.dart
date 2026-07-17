@@ -26,13 +26,14 @@ class CatStateAdapter extends TypeAdapter<CatState> {
       currentStreak: fields[6] as int,
       longestStreak: fields[7] as int,
       adoptedDate: fields[8] as DateTime,
+      lastDecayCheckDate: fields[9] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, CatState obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class CatStateAdapter extends TypeAdapter<CatState> {
       ..writeByte(7)
       ..write(obj.longestStreak)
       ..writeByte(8)
-      ..write(obj.adoptedDate);
+      ..write(obj.adoptedDate)
+      ..writeByte(9)
+      ..write(obj.lastDecayCheckDate);
   }
 
   @override

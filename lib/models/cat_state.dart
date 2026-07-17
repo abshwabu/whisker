@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:whisker/models/daily_task_log.dart';
 
 part 'cat_state.g.dart';
 
@@ -31,6 +32,9 @@ class CatState extends HiveObject {
   @HiveField(8)
   final DateTime adoptedDate;
 
+  @HiveField(9)
+  final DateTime? lastDecayCheckDate;
+
   CatState({
     required this.id,
     this.name = 'Whisker',
@@ -41,14 +45,36 @@ class CatState extends HiveObject {
     this.currentStreak = 0,
     this.longestStreak = 0,
     required this.adoptedDate,
+    this.lastDecayCheckDate,
   }) : accessoriesUnlocked = accessoriesUnlocked ?? const [];
 
   // computed moodToday (sleepy, content, playful, affectionate — computed, not stored long-term)
   String get moodToday {
-    final now = DateTime.now();
-    final daySeed = now.year + now.month + now.day + id.hashCode;
-    final moods = ['sleepy', 'content', 'playful', 'affectionate'];
-    return moods[daySeed % moods.length];
+    try {
+      final box = Hive.box<DailyTaskLog>('dailyTaskLogBox');
+      final today = DateTime.now();
+      final key = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+      final log = box.get(key);
+      if (log == null) return 'sleepy';
+      int count = 0;
+      if (log.feedDone) count++;
+      if (log.playDone) count++;
+      if (log.brushDone) count++;
+      if (log.cuddleDone) count++;
+      switch (count) {
+        case 0:
+          return 'sleepy';
+        case 1:
+        case 2:
+          return 'content';
+        case 3:
+          return 'playful';
+        default:
+          return 'affectionate';
+      }
+    } catch (_) {
+      return 'sleepy';
+    }
   }
 
   CatState copyWith({
@@ -61,6 +87,7 @@ class CatState extends HiveObject {
     int? currentStreak,
     int? longestStreak,
     DateTime? adoptedDate,
+    DateTime? lastDecayCheckDate,
   }) {
     return CatState(
       id: id ?? this.id,
@@ -72,6 +99,7 @@ class CatState extends HiveObject {
       currentStreak: currentStreak ?? this.currentStreak,
       longestStreak: longestStreak ?? this.longestStreak,
       adoptedDate: adoptedDate ?? this.adoptedDate,
+      lastDecayCheckDate: lastDecayCheckDate ?? this.lastDecayCheckDate,
     );
   }
 }
