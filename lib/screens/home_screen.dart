@@ -13,6 +13,7 @@ import 'package:whisker/widgets/cat_painter.dart';
 import 'package:whisker/screens/settings_screen.dart';
 import 'package:whisker/screens/closet_screen.dart';
 import 'package:whisker/screens/message_reveal_screen.dart';
+import 'package:whisker/screens/diary_screen.dart';
 import 'package:whisker/services/notification_service.dart';
 import 'package:whisker/services/message_seed.dart';
 
@@ -508,16 +509,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with SingleTickerProvid
                                     },
                                     tooltip: 'Settings',
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.checkroom, color: Color(0xFF4A3E3D), size: 28),
-                                    onPressed: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => const ClosetScreen(),
-                                        ),
-                                      );
-                                    },
-                                    tooltip: 'Closet',
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.auto_stories, color: Color(0xFF4A3E3D), size: 28),
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => const DiaryScreen(),
+                                            ),
+                                          );
+                                        },
+                                        tooltip: 'Diary',
+                                      ),
+                                      const SizedBox(width: 8),
+                                      IconButton(
+                                        icon: const Icon(Icons.checkroom, color: Color(0xFF4A3E3D), size: 28),
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => const ClosetScreen(),
+                                            ),
+                                          );
+                                        },
+                                        tooltip: 'Closet',
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
